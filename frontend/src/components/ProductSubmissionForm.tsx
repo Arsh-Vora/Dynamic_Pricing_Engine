@@ -5,11 +5,16 @@ const ProductSubmissionForm: React.FC = () => {
   const [condition, setCondition] = useState('New');
   const [ageInMonths, setAgeInMonths] = useState('');
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [offer, setOffer] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    setMessage('Submitting...');
+    setIsLoading(true);
+    setOffer(null);
+    setError(null);
+    setMessage('');
 
     try {
       const response = await fetch('/api/v1/products/register', {
@@ -26,17 +31,60 @@ const ProductSubmissionForm: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setMessage(`Product registered successfully! ID: ${data.id}, Offer Price: ${data.initial_offer_price}`);
+        setOffer(data.initial_offer_price);
+        setMessage(`Product registered successfully! ID: ${data.id}`);
         setDeviceModel('');
         setAgeInMonths('');
       } else {
         const errorData = await response.json();
-        setMessage(`Error: ${errorData.detail || 'Something went wrong.'}`);
+        setError(errorData.detail || 'Something went wrong.');
       }
-    } catch (error) {
-      setMessage(`Network error: ${error instanceof Error ? error.message : String(error)}`);
+    } catch (err) {
+      setError(`Network error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '500px', margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+        <h2>Calculating Offer...</h2>
+        <p>Please wait while we assess your device.</p>
+      </div>
+    );
+  }
+
+  if (offer !== null) {
+    return (
+      <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '500px', margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+        <h2>Offer Generated!</h2>
+        <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#28a745' }}>${offer.toFixed(2)}</p>
+        <p>{message}</p>
+        <button
+          onClick={() => { setOffer(null); setMessage(''); setError(null); }}
+          style={{ padding: '10px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', marginTop: '20px' }}
+        >
+          Register Another Product
+        </button>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '500px', margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', textAlign: 'center', color: '#dc3545' }}>
+        <h2>Error!</h2>
+        <p>{error}</p>
+        <button
+          onClick={() => { setOffer(null); setMessage(''); setError(null); }}
+          style={{ padding: '10px 15px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', marginTop: '20px' }}
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '500px', margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
