@@ -20,7 +20,7 @@ const ProductSubmissionForm: React.FC = () => {
         body: JSON.stringify({
           device_model: deviceModel,
           condition: condition,
-          age_in_months: parseInt(ageInMonths),
+          age_in_months: parseInt(ageInMonths) >=0 ? parseInt(ageInMonths) : 0,
         }),
       });
 

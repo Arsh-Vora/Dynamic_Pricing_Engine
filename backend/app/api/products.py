@@ -10,16 +10,14 @@ router = APIRouter(
 
 @router.post("/register", response_model=schemas.ProductResponse, status_code=status.HTTP_201_CREATED)
 def register_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    # For now, let's set a dummy initial_offer_price
-    # In a real scenario, this would be calculated by the pricing engine
-    dummy_initial_offer_price = 100.00 # Example value
-
+    # initial_offer_price will be calculated by the pricing engine in a future feature.
+    # For now, setting it to 0.0 as a placeholder.
     db_product = models.Product(
         device_model=product.device_model,
         condition=product.condition,
         age_in_months=product.age_in_months,
         status="Registered",
-        initial_offer_price=dummy_initial_offer_price
+        initial_offer_price=0.0 # Placeholder for future dynamic pricing
     )
     db.add(db_product)
     db.commit()
