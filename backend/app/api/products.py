@@ -30,8 +30,8 @@ def register_product(product: schemas.ProductCreate, db: Session = Depends(get_d
 
     # Gemini API Integration
     try:
-        prompt = f"Given a {product.device_model} in {product.condition} condition, that is {product.age_in_months} months old, what is a fair market price? Respond with only a JSON object containing a single key 'price' and its float value. Example: {{"price": 123.45}}"
-        model = genai.GenerativeModel('gemini-pro')
+        prompt = f"Given a {product.device_model} in {product.condition} condition, that is {product.age_in_months} months old, what is a fair market price? Respond with only a JSON object containing a single key 'price' and its float value. Example: {{'price': 123.45}}"
+        model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(prompt)
         llm_output = json.loads(response.text)
         offer_price = float(llm_output.get("price", 0.0))
