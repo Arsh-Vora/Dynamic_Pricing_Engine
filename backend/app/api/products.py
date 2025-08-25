@@ -48,15 +48,19 @@ def register_product(product: schemas.ProductCreate, db: Session = Depends(get_d
             raise ValueError("Received an empty response from the AI service, possibly due to content safety filters.")
 
         cleaned_text = response.text.strip().replace("```json", "").replace("```", "").strip()
-        llm_output = json.loads(cleaned_text)
-        offer_price = float(llm_output.get("price", 0.0))
+        try:
+            llm_output = json.loads(cleaned_text)
+            offer_price = float(llm_output.get("price", 0.0))
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON response from Gemini: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Invalid response from valuation service.") from e
 
         db_product.initial_offer_price = offer_price
         db.add(db_product)
         db.commit()
         db.refresh(db_product)
 
-    except (ValueError, json.JSONDecodeError) as e:
+    except ValueError as e:
         print(f"--- JSON PARSING FAILED ---")
         print(f"Original response text from Gemini: {response.text}")
         print(f"Error: {e}")
