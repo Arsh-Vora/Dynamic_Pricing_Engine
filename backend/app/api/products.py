@@ -9,7 +9,7 @@ from ..database import get_db
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 router = APIRouter(
-    prefix="/products",
+    prefix="/products", # This adds the "/products" part of the URL
     tags=["products"]
 )
 
@@ -33,7 +33,22 @@ def register_product(product: schemas.ProductCreate, db: Session = Depends(get_d
         prompt = f"Given a {product.device_model} in {product.condition} condition, that is {product.age_in_months} months old, what is a fair market price? Respond with only a JSON object containing a single key 'price' and its float value. Example: {{'price': 123.45}}"
         model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(prompt)
-        llm_output = json.loads(response.text)
+
+        # --- NEW DEBUGGING AND SAFETY CODE ---
+        print("--- Full Gemini Response ---")
+        print(response)
+        # ------------------------------------
+        
+        # Check if the response is empty before trying to parse it
+        if not response.text:
+            # Here we can inspect the response object to find out why it was empty
+            # The prompt_feedback object often contains the reason
+            print("--- EMPTY RESPONSE RECEIVED FROM GEMINI ---")
+            print(f"Prompt Feedback: {response.prompt_feedback}")
+            raise ValueError("Received an empty response from the AI service, possibly due to content safety filters.")
+
+        cleaned_text = response.text.strip().replace("```json", "").replace("```", "").strip()
+        llm_output = json.loads(cleaned_text)
         offer_price = float(llm_output.get("price", 0.0))
 
         db_product.initial_offer_price = offer_price
@@ -41,8 +56,15 @@ def register_product(product: schemas.ProductCreate, db: Session = Depends(get_d
         db.commit()
         db.refresh(db_product)
 
+    except (ValueError, json.JSONDecodeError) as e:
+        print(f"--- JSON PARSING FAILED ---")
+        print(f"Original response text from Gemini: {response.text}")
+        print(f"Error: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to parse valuation response.")
+
     except Exception as e:
-        print(f"Error calling Gemini API or parsing response: {e}")
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Failed to get valuation from AI service.")
+        print(f"--- GEMINI API CALL FAILED ---")
+        print(f"Error: {e}")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="The valuation service is currently unavailable.")
 
     return db_product
