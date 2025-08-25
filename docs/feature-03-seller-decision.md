@@ -51,14 +51,16 @@ flowchart LR
         C --> D
     end
 
-    D --> E[PostgreSQL DB]
-
+    D -- "1. Find Product by ID" --> E[PostgreSQL DB]
+    E -- "2. Return Product with status 'Registered'" --> D
+    D -- "3. UPDATE product SET status = 'Pending'/'Closed'" --> E
+    
     subgraph "State Change in DB"
-        F["status: 'Registered'"] -- "Accept" --> G["status: 'Pending'"]
-        F -- "Decline" --> H["status: 'Closed'"]
+        F["status: 'Registered'"] -- "on Accept" --> G["status: 'Pending'"]
+        F -- "on Decline" --> H["status: 'Closed'"]
     end
-
-    E -- "UPDATE products SET status = '...'" -- F
+    
+    E -.-> F
 
     D --> I{API Response (200 OK with updated product)}
     I --> J[React: Confirmation View]
