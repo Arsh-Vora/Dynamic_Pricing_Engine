@@ -15,3 +15,6 @@ This project integrates with the Google Gemini API to provide real-time, AI-powe
 
 ## Seller Decision Flow
 This feature allows sellers to accept or decline the AI-generated price offer. Accepting the offer updates the product status to "Pending" for company acquisition, while declining closes the transaction. This completes the initial user journey.
+
+## Internal Acquisition Flow
+This feature introduces an internal-facing API endpoint (`POST /api/v1/products/{product_id}/acquire`) to finalize the acquisition of a device. This action transitions the product's status from "Pending" to "In Stock", officially adding it to the company's sellable inventory and completing the procurement phase.
