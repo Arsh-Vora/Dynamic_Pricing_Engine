@@ -42,28 +42,22 @@ This feature introduces state-changing actions initiated by the user after the i
 
 ```mermaid
 flowchart LR
-    A[React: Offer Display] -->|User clicks "Accept"| B{POST /api/v1/products/{id}/accept}
-    A -->|User clicks "Decline"| C{POST /api/v1/products/{id}/decline}
+    A[Offer Display UI] -- "User clicks Accept" --> B(API Request)
+    A -- "User clicks Decline" --> B
 
     subgraph "FastAPI Backend"
         direction LR
-        B --> D[Update Product Status Logic]
-        C --> D
+        B -- "POST /v1/products/{id}/accept or /decline" --> D(Update Logic)
     end
 
-    D -- "1. Find Product by ID" --> E[PostgreSQL DB]
-    E -- "2. Return Product with status 'Registered'" --> D
-    D -- "3. UPDATE product SET status = 'Pending'/'Closed'" --> E
-    
-    subgraph "State Change in DB"
-        F["status: 'Registered'"] -- "on Accept" --> G["status: 'Pending'"]
-        F -- "on Decline" --> H["status: 'Closed'"]
+    subgraph "Database Interaction"
+        D -- "1. Find product" --> E(PostgreSQL DB)
+        E -- "2. Return product" --> D
+        D -- "3. Update status to 'Pending' or 'Closed'" --> E
     end
     
-    E -.-> F
-
-    D --> I{API Response (200 OK with updated product)}
-    I --> J[React: Confirmation View]
+    D -- "Sends updated product" --> I(API Response)
+    I -- "200 OK" --> J[Confirmation UI]
 ```
 
 ---
