@@ -74,8 +74,8 @@ const ProductSubmissionForm: React.FC = () => {
   if (error) {
     return (
       <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '500px', margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', textAlign: 'center', color: '#dc3545' }}>
-        <h2>Error!</h2>
-        <p>{error}</p>
+        <h2>Error: {error}</h2>
+        <p>Please try again later or contact support if the problem persists.</p>
         <button
           onClick={() => { setOffer(null); setMessage(''); setError(null); }}
           style={{ padding: '10px 15px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', marginTop: '20px' }}
