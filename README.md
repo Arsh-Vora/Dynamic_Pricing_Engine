@@ -12,3 +12,6 @@ This project integrates with the Google Gemini API to provide real-time, AI-powe
     ```bash
     docker-compose up --build -d
     ```
+
+## Seller Decision Flow
+This feature allows sellers to accept or decline the AI-generated price offer. Accepting the offer updates the product status to "Pending" for company acquisition, while declining closes the transaction. This completes the initial user journey.
