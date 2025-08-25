@@ -14,4 +14,6 @@ class Product(Base):
     age_in_months = Column(Integer)
     status = Column(String)
     initial_offer_price = Column(Float)
+    current_market_price = Column(Float, nullable=True) # NEW
+    sold_at = Column(DateTime(timezone=True), nullable=True) # NEW (Nullable)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

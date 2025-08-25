@@ -31,9 +31,13 @@ def register_product(product: schemas.ProductCreate, db: Session = Depends(get_d
 
     # Gemini API Integration
     try:
-        prompt = f"Given a {product.device_model} in {product.condition} condition, that is {product.age_in_months} months old, what is a fair market price? Respond with only a JSON object containing a single key 'price' and its float value. Example: {{'price': 123.45}}"
+        prompt = f"Given a used {product.device_model} in {product.condition} condition, that is {product.age_in_months} months old, what is a fair second-hand market resale value, considering typical depreciation and wear and tear? Respond with only a JSON object containing a single key 'price' and its float value. Example: {{'price': 123.45}}"
         model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(prompt)
+        try:
+            response = model.generate_content(prompt)
+        except Exception as e:
+            print(f"Error calling Gemini API: {e}")
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="The valuation service is currently unavailable due to API issues.") from e
 
         # --- NEW DEBUGGING AND SAFETY CODE ---
         print("--- Full Gemini Response ---")
