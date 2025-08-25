@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PriceOfferDisplay from './PriceOfferDisplay';
 
 const ProductSubmissionForm: React.FC = () => {
   const [deviceModel, setDeviceModel] = useState('');
@@ -6,7 +7,7 @@ const ProductSubmissionForm: React.FC = () => {
   const [ageInMonths, setAgeInMonths] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [offer, setOffer] = useState<number | null>(null);
+  const [offer, setOffer] = useState<{ price: number; productId: number; } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +32,7 @@ const ProductSubmissionForm: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setOffer(data.initial_offer_price);
+        setOffer({ price: data.initial_offer_price, productId: data.id });
         setMessage(`Product registered successfully! ID: ${data.id}`);
         setDeviceModel('');
         setAgeInMonths('');
@@ -57,17 +58,7 @@ const ProductSubmissionForm: React.FC = () => {
 
   if (offer !== null) {
     return (
-      <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '500px', margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-        <h2>Offer Generated!</h2>
-        <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#28a745' }}>${offer.toFixed(2)}</p>
-        <p>{message}</p>
-        <button
-          onClick={() => { setOffer(null); setMessage(''); setError(null); }}
-          style={{ padding: '10px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', marginTop: '20px' }}
-        >
-          Register Another Product
-        </button>
-      </div>
+      <PriceOfferDisplay offer={offer} />
     );
   }
 
