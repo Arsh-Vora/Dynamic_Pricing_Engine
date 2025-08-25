@@ -72,3 +72,33 @@ def register_product(product: schemas.ProductCreate, db: Session = Depends(get_d
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="The valuation service is currently unavailable.")
 
     return db_product
+
+
+@router.post("/{product_id}/accept", response_model=schemas.ProductResponse)
+def accept_offer(product_id: int, db: Session = Depends(get_db)):
+    db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    if db_product.status != "Registered":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This offer has already been actioned.")
+
+    db_product.status = "Pending"
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+
+@router.post("/{product_id}/decline", response_model=schemas.ProductResponse)
+def decline_offer(product_id: int, db: Session = Depends(get_db)):
+    db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    if db_product.status != "Registered":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This offer has already been actioned.")
+
+    db_product.status = "Closed"
+    db.commit()
+    db.refresh(db_product)
+    return db_product
