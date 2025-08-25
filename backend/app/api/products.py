@@ -1,3 +1,4 @@
+import logging
 import os
 import json
 import google.generativeai as genai
@@ -106,14 +107,16 @@ def decline_offer(product_id: int, db: Session = Depends(get_db)):
 
 @router.post("/{product_id}/acquire", response_model=schemas.ProductResponse)
 def acquire_product(product_id: int, db: Session = Depends(get_db)):
-    db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
-    if not db_product:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-
-    if db_product.status != "Pending":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product is not in a pending state and cannot be acquired.")
-
-    db_product.status = "In Stock"
-    db.commit()
-    db.refresh(db_product)
-    return db_product
+    try:
+        db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
+        if not db_product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        if db_product.status != "Pending":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product is not in a pending state and cannot be acquired.")
+        db_product.status = "In Stock"
+        db.commit()
+        db.refresh(db_product)
+        return db_product
+    except Exception as e:
+        logging.exception(f"Database error during product acquisition: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
