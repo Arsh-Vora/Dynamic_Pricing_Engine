@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from .api import products
-from .database import engine, Base
+from . import models       # <-- IMPORT YOUR MODELS FILE
+from .database import engine # <-- IMPORT THE ENGINE
 
-Base.metadata.create_all(bind=engine)
+# This is the magic line that creates the tables
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Recommerce Backend API",
@@ -10,7 +12,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-app.include_router(products.router, prefix="/api/v1")
+app.include_router(products.router, prefix="/v1", tags=["Products"])
 
 @app.get("/")
 async def root():
